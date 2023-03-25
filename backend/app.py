@@ -12,9 +12,9 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
 MYSQL_USER = "root"
-MYSQL_USER_PASSWORD = "MayankRao16Cornell.edu"
+MYSQL_USER_PASSWORD = "gan4646"
 MYSQL_PORT = 3306
-MYSQL_DATABASE = "kardashiandb"
+MYSQL_DATABASE = "yelp"
 
 mysql_engine = MySQLDatabaseHandler(MYSQL_USER,MYSQL_USER_PASSWORD,MYSQL_PORT,MYSQL_DATABASE)
 
@@ -27,11 +27,17 @@ CORS(app)
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
-def sql_search(episode):
-    query_sql = f"""SELECT * FROM episodes WHERE LOWER( title ) LIKE '%%{episode.lower()}%%' limit 10"""
-    keys = ["id","title","descr"]
-    data = mysql_engine.query_selector(query_sql)
+# Dictionary ={1:'Welcome', 2:'to',
+#             3:'Geeks', 4:'for',
+#             5:'Geeks'}
+def sql_search(query):
+    query_sql_city = f"""SELECT * FROM businesses WHERE LOWER( city ) LIKE '%%{query.split()[0].lower()}%%'"""
+    query_sql_review = f"""SELECT rev_text FROM reviews JOIN (businesses) ON (businesses.bus_id = reviews.bus_id)"""
+    # query_sql_city = f"""SELECT rev_text FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER( city ) LIKE '%%{query.split()[0].lower()}%%') ON (businesses.bus_id = reviews.bus_id) WHERE LOWER(rev_text) like '%%{query.split()[1].lower()}%%'"""
+    keys = ["id","business_name","city", "us_state"]
+    data = mysql_engine.query_selector(query_sql_city)
     return json.dumps([dict(zip(keys,i)) for i in data])
+    # json_string = json.dumps(Dictionary)
 
 @app.route("/")
 def home():
@@ -42,4 +48,4 @@ def episodes_search():
     text = request.args.get("title")
     return sql_search(text)
 
-# app.run(debug=True)
+app.run(debug=True)
