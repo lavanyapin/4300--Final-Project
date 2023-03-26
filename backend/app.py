@@ -33,17 +33,12 @@ CORS(app)
 def sql_search(query):
     city = query.split()[0]
     dict_list = []
-    keywords = query.split()[1:]
-    for x in range(len(keywords)):
-        word = keywords[x]
-        query_sql_city = f"""SELECT DISTINCT business_filtered.bus_name, business_filtered.city,business_filtered.us_state FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER(city) LIKE '%%{city.lower()}%%') business_filtered ON (business_filtered.bus_id = reviews.bus_id) WHERE LOWER(rev_text) LIKE '%%{word.lower()}%%'"""
-        keys = ["bus_name","city","us_state"]
-        # breaking here on 2nd iteration      
-        data = mysql_engine.query_selector(query_sql_city)
-        this_list = [dict(zip(keys,i)) for i in data]
-        dict_list.extend(this_list)
-    dedup_list = [i for n, i in enumerate(dict_list) if i not in dict_list[n + 1:]]
-    return json.dumps(dict_list)
+    keyword1 = query.split()[1]
+    keyword2 = query.split()[2]
+    query_sql_city = f"""SELECT DISTINCT business_filtered.bus_name, business_filtered.city,business_filtered.us_state FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER(city) LIKE '%%{city.lower()}%%') business_filtered ON (business_filtered.bus_id = reviews.bus_id) WHERE (LOWER(rev_text) LIKE '%%{keyword1.lower()}%%' OR LOWER(rev_text) LIKE '%%{keyword2.lower()}%%')"""
+    keys = ["bus_name","city","us_state"]
+    data = mysql_engine.query_selector(query_sql_city)
+    return json.dumps([dict(zip(keys,i)) for i in data])
 
 @app.route("/")
 def home():
