@@ -31,18 +31,14 @@ CORS(app)
 #             3:'Geeks', 4:'for',
 #             5:'Geeks'}
 def sql_search(query):
-    print(query)
     city = query.split("; ")[0]
-    print(city)
     keywords = query.split("; ")[1].split()
-    print(keywords)
     query_init = f"SELECT DISTINCT business_filtered.bus_name, business_filtered.city,business_filtered.us_state FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER(city) LIKE '%%{city.lower()}%%') business_filtered ON (business_filtered.bus_id = reviews.bus_id) WHERE "
     like_clauses = []
     for x in range(len(keywords)):
         like_clauses.append(f"LOWER(rev_text) LIKE '%%{keywords[x].lower()}%%'")
     like_clause_str = ' OR '.join(like_clauses)
     query_sql_city = query_init + like_clause_str
-    print(query_sql_city)
     keys = ["bus_name","city","us_state"]
     data = mysql_engine.query_selector(query_sql_city)
     return json.dumps([dict(zip(keys,i)) for i in data])
