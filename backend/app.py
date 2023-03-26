@@ -34,25 +34,16 @@ def sql_search(query):
     city = query.split()[0]
     dict_list = []
     keywords = query.split()[1:]
-    print(keywords)
     for x in range(len(keywords)):
-        print(str(x) + "1")
         word = keywords[x]
-        print(str(x) + "2")
         query_sql_city = f"""SELECT DISTINCT business_filtered.bus_name, business_filtered.city,business_filtered.us_state FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER(city) LIKE '%%{city.lower()}%%') business_filtered ON (business_filtered.bus_id = reviews.bus_id) WHERE LOWER(rev_text) LIKE '%%{word.lower()}%%'"""
-        print(str(x) + "3")
         keys = ["bus_name","city","us_state"]
-        print(str(x) + "4")
+        # breaking here on 2nd iteration      
         data = mysql_engine.query_selector(query_sql_city)
-        print(str(x) + "5")
         this_list = [dict(zip(keys,i)) for i in data]
-        print(str(x) + "6")
         dict_list.extend(this_list)
-    # query_sql_review = f"""SELECT rev_text FROM reviews JOIN (businesses) ON (businesses.bus_id = reviews.bus_id)"""
-    # query_sql_city = f"""SELECT rev_text FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER( city ) LIKE '%%{query.split()[0].lower()}%%') ON (businesses.bus_id = reviews.bus_id) WHERE LOWER(rev_text) like '%%{query.split()[1].lower()}%%'"""
     dedup_list = [i for n, i in enumerate(dict_list) if i not in dict_list[n + 1:]]
     return json.dumps(dict_list)
-    # json_string = json.dumps(Dictionary)
 
 @app.route("/")
 def home():
