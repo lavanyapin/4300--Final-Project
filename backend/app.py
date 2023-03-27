@@ -12,9 +12,9 @@ os.environ['ROOT_PATH'] = os.path.abspath(os.path.join("..",os.curdir))
 # Don't worry about the deployment credentials, those are fixed
 # You can use a different DB name if you want to
 MYSQL_USER = "root"
-MYSQL_USER_PASSWORD = "MayankRao16Cornell.edu"
+MYSQL_USER_PASSWORD = "gan4646"
 MYSQL_PORT = 3306
-MYSQL_DATABASE = "kardashiandb"
+MYSQL_DATABASE = "yelp"
 
 mysql_engine = MySQLDatabaseHandler(MYSQL_USER,MYSQL_USER_PASSWORD,MYSQL_PORT,MYSQL_DATABASE)
 
@@ -27,10 +27,20 @@ CORS(app)
 # Sample search, the LIKE operator in this case is hard-coded, 
 # but if you decide to use SQLAlchemy ORM framework, 
 # there's a much better and cleaner way to do this
-def sql_search(episode):
-    query_sql = f"""SELECT * FROM episodes WHERE LOWER( title ) LIKE '%%{episode.lower()}%%' limit 10"""
-    keys = ["id","title","descr"]
-    data = mysql_engine.query_selector(query_sql)
+# Dictionary ={1:'Welcome', 2:'to',
+#             3:'Geeks', 4:'for',
+#             5:'Geeks'}
+def sql_search(query):
+    city = query.split("; ")[0]
+    keywords = query.split("; ")[1].split()
+    query_init = f"SELECT DISTINCT business_filtered.bus_name, business_filtered.city,business_filtered.us_state FROM reviews JOIN (SELECT * FROM businesses WHERE LOWER(city) LIKE '%%{city.lower()}%%') business_filtered ON (business_filtered.bus_id = reviews.bus_id) WHERE "
+    like_clauses = []
+    for x in range(len(keywords)):
+        like_clauses.append(f"LOWER(rev_text) LIKE '%%{keywords[x].lower()}%%'")
+    like_clause_str = ' OR '.join(like_clauses)
+    query_sql_city = query_init + like_clause_str
+    keys = ["bus_name","city","us_state"]
+    data = mysql_engine.query_selector(query_sql_city)
     return json.dumps([dict(zip(keys,i)) for i in data])
 
 @app.route("/")
@@ -42,4 +52,4 @@ def episodes_search():
     text = request.args.get("title")
     return sql_search(text)
 
-# app.run(debug=True)
+app.run(debug=True)
